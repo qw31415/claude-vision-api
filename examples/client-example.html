@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Claude Vision API 测试客户端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .config-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .test-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        
+        .test-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        button {
+            background: #007cba;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        
+        button:hover {
+            background: #005a8b;
+        }
+        
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .response-area {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 15px;
+            min-height: 200px;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 13px;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .status {
+            padding: 8px 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        @media (max-width: 768px) {
+            .test-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 Claude Vision API 测试客户端</h1>
+            <p>测试Claude AI的文本对话和图像分析功能</p>
+        </div>
+        
+        <div class="config-section">
+            <h2>🔧 配置</h2>
+            <div class="form-group">
+                <label for="apiUrl">API地址:</label>
+                <input type="url" id="apiUrl" value="https://your-worker.your-domain.workers.dev" placeholder="https://your-worker.your-domain.workers.dev">
+            </div>
+            <div class="form-group">
+                <label for="apiKey">API密钥:</label>
+                <input type="text" id="apiKey" placeholder="your-api-key">
+            </div>
+            <button onclick="testConnection()">🔍 测试连接</button>
+            <div id="connectionStatus"></div>
+        </div>
+        
+        <div class="test-section">
+            <!-- 文本对话测试 -->
+            <div class="test-panel">
+                <h2>💬 文本对话</h2>
+                <div class="form-group">
+                    <label for="chatMessage">消息:</label>
+                    <textarea id="chatMessage" placeholder="输入你想问Claude的问题...">你好，Claude！请介绍一下你自己。</textarea>
+                </div>
+                <div class="form-group">
+                    <label for="sessionId">会话ID (可选):</label>
+                    <input type="text" id="sessionId" placeholder="留空自动生成">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="useStream"> 使用流式响应
+                    </label>
+                </div>
+                <button onclick="sendChatMessage()">📤 发送消息</button>
+                <div id="chatResponse" class="response-area"></div>
+            </div>
+            
+            <!-- 图像分析测试 -->
+            <div class="test-panel">
+                <h2>🖼️ 图像分析</h2>
+                <div class="form-group">
+                    <label for="imageFile">选择图片:</label>
+                    <input type="file" id="imageFile" accept="image/*" onchange="previewImage(event)">
+                    <img id="imagePreview" class="image-preview" style="display: none;">
+                </div>
+                <div class="form-group">
+                    <label for="imagePrompt">分析提示:</label>
+                    <textarea id="imagePrompt" placeholder="你想让Claude如何分析这张图片？">请详细描述这张图片的内容，包括主要物体、场景、颜色等。</textarea>
+                </div>
+                <button onclick="analyzeImage()">🔍 分析图片</button>
+                <div id="imageResponse" class="response-area"></div>
+            </div>
+        </div>
+        
+        <!-- 多模态对话测试 -->
+        <div class="test-panel" style="margin-top: 20px;">
+            <h2>🎭 多模态对话（文本+图片）</h2>
+            <div class="form-group">
+                <label for="multimodalMessage">消息:</label>
+                <textarea id="multimodalMessage" placeholder="输入消息...">分析这些图片并说明它们的关系。</textarea>
+            </div>
+            <div class="form-group">
+                <label for="multimodalImages">选择多张图片:</label>
+                <input type="file" id="multimodalImages" multiple accept="image/*" onchange="previewMultipleImages(event)">
+                <div id="multimodalPreviews"></div>
+            </div>
+            <button onclick="sendMultimodalMessage()">🚀 发送多模态消息</button>
+            <div id="multimodalResponse" class="response-area"></div>
+        </div>
+    </div>
+
+    <script>
+        let currentImages = [];
+
+        // 测试API连接
+        async function testConnection() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const statusDiv = document.getElementById('connectionStatus');
+            
+            statusDiv.innerHTML = '<div class="status loading">🔄 正在测试连接...</div>';
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/health`);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    statusDiv.innerHTML = `<div class="status success">✅ 连接成功！服务版本: ${data.version}</div>`;
+                } else {
+                    statusDiv.innerHTML = `<div class="status error">❌ 连接失败: ${data.message}</div>`;
+                }
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ 连接错误: ${error.message}</div>`;
+            }
+        }
+
+        // 发送文本消息
+        async function sendChatMessage() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const message = document.getElementById('chatMessage').value;
+            const sessionId = document.getElementById('sessionId').value;
+            const useStream = document.getElementById('useStream').checked;
+            const responseDiv = document.getElementById('chatResponse');
+            
+            if (!message.trim()) {
+                alert('请输入消息');
+                return;
+            }
+            
+            responseDiv.textContent = '🔄 正在发送...';
+            
+            try {
+                const endpoint = useStream ? '/api/chat/stream' : '/api/chat';
+                const response = await fetch(`${apiUrl}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey
+                    },
+                    body: JSON.stringify({
+                        message,
+                        sessionId: sessionId || undefined
+                    })
+                });
+                
+                if (useStream) {
+                    responseDiv.textContent = '';
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\\n').filter(line => line.startsWith('data: '));
+                        
+                        for (const line of lines) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.type === 'content') {
+                                    responseDiv.textContent += data.text;
+                                }
+                            } catch (e) {
+                                // 忽略解析错误
+                            }
+                        }
+                    }
+                } else {
+                    const data = await response.json();
+                    if (response.ok) {
+                        responseDiv.textContent = `✅ 响应成功！\\n\\n${data.message}\\n\\n---\\n会话ID: ${data.sessionId}`;
+                        document.getElementById('sessionId').value = data.sessionId;
+                    } else {
+                        responseDiv.textContent = `❌ 错误: ${data.message}`;
+                    }
+                }
+                
+            } catch (error) {
+                responseDiv.textContent = `❌ 请求错误: ${error.message}`;
+            }
+        }
+
+        // 预览单张图片
+        function previewImage(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 预览多张图片
+        function previewMultipleImages(event) {
+            const files = Array.from(event.target.files);
+            const previewsDiv = document.getElementById('multimodalPreviews');
+            previewsDiv.innerHTML = '';
+            currentImages = [];
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    currentImages.push(e.target.result);
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'image-preview';
+                    img.style.marginRight = '10px';
+                    previewsDiv.appendChild(img);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // 分析单张图片
+        async function analyzeImage() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const prompt = document.getElementById('imagePrompt').value;
+            const fileInput = document.getElementById('imageFile');
+            const responseDiv = document.getElementById('imageResponse');
+            
+            if (!fileInput.files[0]) {
+                alert('请选择图片');
+                return;
+            }
+            
+            responseDiv.textContent = '🔄 正在分析图片...';
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const response = await fetch(`${apiUrl}/api/image/upload`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-API-Key': apiKey
+                        },
+                        body: JSON.stringify({
+                            image: e.target.result,
+                            prompt: prompt || "请描述这张图片"
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (response.ok) {
+                        responseDiv.textContent = `✅ 分析完成！\\n\\n${data.analysis}\\n\\n---\\n图片信息: ${data.imageInfo.format.toUpperCase()}, ${Math.round(data.imageInfo.size/1024)}KB`;
+                    } else {
+                        responseDiv.textContent = `❌ 分析失败: ${data.message}`;
+                    }
+                    
+                } catch (error) {
+                    responseDiv.textContent = `❌ 请求错误: ${error.message}`;
+                }
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        // 发送多模态消息
+        async function sendMultimodalMessage() {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const apiKey = document.getElementById('apiKey').value;
+            const message = document.getElementById('multimodalMessage').value;
+            const responseDiv = document.getElementById('multimodalResponse');
+            
+            if (!message.trim() && currentImages.length === 0) {
+                alert('请输入消息或选择图片');
+                return;
+            }
+            
+            responseDiv.textContent = '🔄 正在处理多模态请求...';
+            
+            try {
+                const response = await fetch(`${apiUrl}/api/chat/multimodal`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': apiKey
+                    },
+                    body: JSON.stringify({
+                        message: message || undefined,
+                        images: currentImages
+                    })
+                });
+                
+                const data = await response.json();
+                if (response.ok) {
+                    responseDiv.textContent = `✅ 响应成功！\\n\\n${data.message}\\n\\n---\\n会话ID: ${data.sessionId}`;
+                } else {
+                    responseDiv.textContent = `❌ 错误: ${data.message}`;
+                }
+                
+            } catch (error) {
+                responseDiv.textContent = `❌ 请求错误: ${error.message}`;
+            }
+        }
+
+        // 页面加载时的初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以在这里添加初始化逻辑
+            console.log('Claude Vision API 测试客户端已就绪');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "claude-vision-api",
+  "version": "1.0.0",
+  "description": "Claude API with vision support for Cloudflare Workers",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "keywords": ["claude", "api", "vision", "cloudflare", "workers"],
+  "author": "Claude Vision API",
+  "license": "MIT",
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
+}
