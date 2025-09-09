@@ -1,4 +1,5 @@
-const CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
+// 2API配置 - 可通过环境变量自定义
+const CLAUDE_API_URL = process.env.API_BASE_URL || 'https://api.anthropic.com/v1/messages';
 const DEFAULT_MODEL = 'claude-3-5-sonnet-20241022';
 const VISION_MODEL = 'claude-3-5-sonnet-20241022';
 

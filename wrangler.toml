@@ -1,16 +1,18 @@
-name = "claude-vision-api"
+name = "claude3-5"
 main = "src/index.js"
 compatibility_date = "2024-01-01"
 
 [env.production.vars]
-# These will be set via wrangler secret put
-# ANTHROPIC_API_KEY = "your-api-key"
-# ALLOWED_ORIGINS = "https://yourdomain.com,https://anotherdomain.com"
+# 2API配置 - 通过wrangler secret设置
+# API_BASE_URL = "https://your-2api-endpoint.com/v1/messages"  
+# API_KEY = "your-2api-key"
+# ALLOWED_API_KEYS = "your-client-api-keys"
 
 [[env.production.kv_namespaces]]
 binding = "SESSIONS"
 id = "your-kv-namespace-id"
 preview_id = "your-preview-kv-namespace-id"
 
-[limits]
-cpu_ms = 10000
+# Remove CPU limits for free plan
+# [limits]
+# cpu_ms = 10000

@@ -28,8 +28,9 @@ export async function handleChatStream(request, env) {
       });
     }
 
-    // Initialize Claude API and session manager
-    const claude = new ClaudeAPI(env.ANTHROPIC_API_KEY);
+    // Initialize Claude API and session manager (支持2API)
+    const apiKey = env.API_KEY || env.ANTHROPIC_API_KEY;
+    const claude = new ClaudeAPI(apiKey);
     const sessionManager = new SessionManager(env.SESSIONS);
 
     // Get or create session
